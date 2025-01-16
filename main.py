@@ -4,6 +4,9 @@ from flask_login import LoginManager, UserMixin, login_user, login_required, log
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime
 import os
+import logging
+
+logging.info("DATABASE_URL:", os.environ.get("DATABASE_URL"))
 
 # Use environment variables for database connection (assuming DATABASE_URL exists)
 DATABASE_URL = os.environ.get("DATABASE_URL")
