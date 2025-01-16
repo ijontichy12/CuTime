@@ -11,10 +11,11 @@ DATABASE_URL = os.environ.get("DATABASE_URL")
 # Fix the SQLAlchemy postgres vs postgresql issue
 if DATABASE_URL and DATABASE_URL.startswith("postgres://"):
     DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
-
+    print("Modified DATABASE_URL:", DATABASE_URL)
 app = Flask(__name__)
 
 app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URL
+print("Final SQLALCHEMY_DATABASE_URI:", app.config['SQLALCHEMY_DATABASE_URI'])
 
 
 app.config['SECRET_KEY'] = 'your_secret_key'  # Replace with a strong secret key
@@ -64,13 +65,18 @@ def load_user(user_id):
     return User.query.get(int(user_id))
 
 def init_db():
+    print("Starting database initialization...")
     try:
         with app.app_context():
+            print("Creating all database tables...")
             # Create all tables
+            db.drop_all()  # Be careful with this in production!
             db.create_all()
             
+            print("Checking for existing admin user...")
             # Check if admin user exists
             if not User.query.filter_by(username='admin').first():
+                print("Creating admin user...")
                 test_user = User(username='admin', 
                                password=generate_password_hash('admin', method='pbkdf2:sha256'))
                 db.session.add(test_user)
@@ -78,16 +84,20 @@ def init_db():
                 db.session.add(team1)
                 
             if not User.query.filter_by(username='admin2').first():
+                print("Creating admin2 user...")
                 test_user2 = User(username='admin2', 
                                 password=generate_password_hash('admin', method='pbkdf2:sha256'))
                 db.session.add(test_user2)
                 team2 = Team(name='team2', manager=test_user2)
                 db.session.add(team2)
                 
+            print("Committing changes to database...")
             db.session.commit()
             print("Database initialized successfully!")
     except Exception as e:
         print(f"Error initializing database: {e}")
+        print(f"Error type: {type(e)}")
+        raise e
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -202,6 +212,7 @@ def delete_worktime(worktime_id):
     db.session.commit()
     return redirect(url_for('dashboard'))
 
+print("Starting application...")
     init_db()
 
 if __name__ == '__main__':
