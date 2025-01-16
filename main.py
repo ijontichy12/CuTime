@@ -12,6 +12,7 @@ DATABASE_URL = os.environ.get("DATABASE_URL")
 if DATABASE_URL and DATABASE_URL.startswith("postgres://"):
     DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
     print("Modified DATABASE_URL:", DATABASE_URL)
+
 app = Flask(__name__)
 
 app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URL
@@ -212,7 +213,7 @@ def delete_worktime(worktime_id):
     db.session.commit()
     return redirect(url_for('dashboard'))
 
-print("Starting application...")
+    print("Starting application...")
     init_db()
 
 if __name__ == '__main__':
