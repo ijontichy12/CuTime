@@ -26,6 +26,7 @@ login_manager.init_app(app)
 login_manager.login_view = 'login'
 
 class User(UserMixin, db.Model):
+    __tablename__ = 'users'  # Change the table name to 'users' instead of default 'user'
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(150), unique=True, nullable=False)
     password = db.Column(db.String(150), nullable=False)
@@ -34,7 +35,7 @@ class User(UserMixin, db.Model):
 class Team(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(150), unique=True, nullable=False)
-    manager_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    manager_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     employees = db.relationship('Employee', secondary='team_employee', back_populates='teams')
 
 class Employee(db.Model):
@@ -204,4 +205,4 @@ def delete_worktime(worktime_id):
     init_db()
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000)
+    app.run(host='0.0.0.0')
