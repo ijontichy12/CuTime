@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mitarbeiter hinzufügen</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <script>
+    function checkDuplicateEmployee() {
+      const newName = document.getElementById('employee_name').value.trim().toLowerCase();
+      const existingNames = {{ employees | map(attribute='name') | map('lower') | list | tojson }};
+      
+      if (existingNames.includes(newName)) {
+        alert('Ein Mitarbeiter mit diesem Namen existiert bereits.');
+        return false;
+      }
+      return true;
+    }
+  </script>
+</head>
+<body class="bg-gray-100">
+
+<div class="container mx-auto p-4 min-h-screen">
+  <!-- Header -->
+  <h1 class="text-2xl font-bold text-green-600 mb-4">Mitarbeiter hinzufügen</h1>
+
+  <!-- Form Section -->
+  <section class="mb-8">
+    <form action="/add_employee" method="post" class="bg-white rounded-lg shadow-md p-4" onsubmit="return checkDuplicateEmployee()">
+      <div class="mb-4">
+        <label for="employee_name" class="block text-sm font-medium text-green-500">Name:</label>
+        <input type="text" id="employee_name" name="name" class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500" required>
+      </div>
+
+      <div class="flex justify-between">
+        <button type="submit" class="bg-green-500 text-white py-2 px-4 rounded-lg shadow-md hover:bg-green-600 transition duration-300">Mitarbeiter hinzufügen</button>
+        <a href="/" class="bg-red-500 text-white py-2 px-4 rounded-lg shadow-md hover:bg-red-600 transition duration-300">Zurück zur Übersicht</a>
+      </div>
+    </form>
+  </section>
+</div>
+
+</body>
+</html>
