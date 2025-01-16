@@ -5,10 +5,16 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime
 import os
 
+# Use environment variables for database connection (assuming DATABASE_URL exists)
+DATABASE_URL = os.environ.get("DATABASE_URL")
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'your_secret_key'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://marco:2805@localhost/cutime_db'
+
+# Configure SQLAlchemy using the environment variable
+app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URL
+app.config['SECRET_KEY'] = 'your_secret_key'  # Replace with a strong secret key
+
 db = SQLAlchemy(app)
+
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'
