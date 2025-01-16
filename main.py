@@ -63,19 +63,30 @@ def load_user(user_id):
     return User.query.get(int(user_id))
 
 def init_db():
-    with app.app_context():
-        db.create_all()  # Create all tables
-        if not User.query.filter_by(username='admin').first():
-            test_user = User(username='admin', password=generate_password_hash('admin', method='pbkdf2:sha256'))
-            db.session.add(test_user)
-            team1 = Team(name='team1', manager=test_user)
-            db.session.add(team1)
-        if not User.query.filter_by(username='admin2').first():
-            test_user2 = User(username='admin2', password=generate_password_hash('admin', method='pbkdf2:sha256'))
-            db.session.add(test_user2)
-            team2 = Team(name='team2', manager=test_user2)
-            db.session.add(team2)
-        db.session.commit()
+    try:
+        with app.app_context():
+            # Create all tables
+            db.create_all()
+            
+            # Check if admin user exists
+            if not User.query.filter_by(username='admin').first():
+                test_user = User(username='admin', 
+                               password=generate_password_hash('admin', method='pbkdf2:sha256'))
+                db.session.add(test_user)
+                team1 = Team(name='team1', manager=test_user)
+                db.session.add(team1)
+                
+            if not User.query.filter_by(username='admin2').first():
+                test_user2 = User(username='admin2', 
+                                password=generate_password_hash('admin', method='pbkdf2:sha256'))
+                db.session.add(test_user2)
+                team2 = Team(name='team2', manager=test_user2)
+                db.session.add(team2)
+                
+            db.session.commit()
+            print("Database initialized successfully!")
+    except Exception as e:
+        print(f"Error initializing database: {e}")
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -190,6 +201,7 @@ def delete_worktime(worktime_id):
     db.session.commit()
     return redirect(url_for('dashboard'))
 
-if __name__ == '__main__':
     init_db()
+
+if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
