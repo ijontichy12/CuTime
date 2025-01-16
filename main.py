@@ -7,10 +7,16 @@ import os
 
 # Use environment variables for database connection (assuming DATABASE_URL exists)
 DATABASE_URL = os.environ.get("DATABASE_URL")
+
+# Fix the SQLAlchemy postgres vs postgresql issue
+if DATABASE_URL and DATABASE_URL.startswith("postgres://"):
+    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
+
 app = Flask(__name__)
 
-# Configure SQLAlchemy using the environment variable
 app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URL
+
+
 app.config['SECRET_KEY'] = 'your_secret_key'  # Replace with a strong secret key
 
 db = SQLAlchemy(app)
