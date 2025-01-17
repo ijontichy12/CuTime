@@ -137,6 +137,14 @@ def drop_all_tables():
         db.session.rollback()
         raise e
 
+def parse_time(time_str):
+    if time_str:
+        try:
+            return datetime.strptime(time_str, '%H:%M:%S').time()
+        except ValueError:
+            return datetime.strptime(time_str, '%H:%M').time()
+    return None
+
 @app.route('/')
 def index():
     return redirect(url_for('login'))
@@ -201,9 +209,9 @@ def add_worktime(employee_id):
         comment = request.form['comment']
         # Convert date string to Python date object
         date = datetime.strptime(date_str, '%Y-%m-%d').date()
-        # Convert time strings to Python time objects
-        start_time = datetime.strptime(start_time_str, '%H:%M').time() if start_time_str else None
-        end_time = datetime.strptime(end_time_str, '%H:%M').time() if end_time_str else None
+        # Convert time strings to Python time objects, handling both formats
+        start_time = parse_time(start_time_str)
+        end_time = parse_time(end_time_str)
         new_worktime = WorkTime(
             employee_id=employee.id,
             date=date,
@@ -229,9 +237,9 @@ def edit_worktime(worktime_id):
         comment = request.form['comment']
         # Convert date string to Python date object
         worktime.date = datetime.strptime(date_str, '%Y-%m-%d').date()
-        # Convert time strings to Python time objects
-        worktime.start_time = datetime.strptime(start_time_str, '%H:%M').time() if start_time_str else None
-        worktime.end_time = datetime.strptime(end_time_str, '%H:%M').time() if end_time_str else None
+        # Convert time strings to Python time objects, handling both formats
+        worktime.start_time = parse_time(start_time_str)
+        worktime.end_time = parse_time(end_time_str)
         worktime.status = status
         worktime.comment = comment
         db.session.commit()
