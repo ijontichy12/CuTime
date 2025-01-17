@@ -1,7 +1,7 @@
-name: Daily Data Retrieval
+name: Data Retrieval Every 5 Minutes
 on:
   schedule:
-    - cron: '*/5 * * * *'  # Runs daily at midnight UTC
+    - cron: '*/5 * * * *'  # Correct cron expression for every 5 minutes
 jobs:
   retrieve-data:
     runs-on: ubuntu-latest
@@ -27,5 +27,5 @@ jobs:
       - name: Upload data file
         uses: actions/upload-artifact@v3
         with:
-          name: daily_data_export
-          path: daily_data_export.csv
+          name: data_export
+          path: data_export.csv
