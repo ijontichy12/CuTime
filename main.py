@@ -137,6 +137,10 @@ def drop_all_tables():
         db.session.rollback()
         raise e
 
+@app.route('/')
+def index():
+    return redirect(url_for('login'))
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
