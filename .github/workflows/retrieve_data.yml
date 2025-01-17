@@ -1,0 +1,31 @@
+name: Daily Data Retrieval
+on:
+  schedule:
+    - cron: '/5 * * * *'  # Runs daily at midnight UTC
+jobs:
+  retrieve-data:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install sqlalchemy pandas
+
+      - name: Run data retrieval script
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: python retrieve_data.py
+
+      - name: Upload data file
+        uses: actions/upload-artifact@v3
+        with:
+          name: daily_data_export
+          path: daily_data_export.csv
