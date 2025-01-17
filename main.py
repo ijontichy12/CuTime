@@ -244,10 +244,10 @@ def delete_worktime(worktime_id):
 
 if __name__ == '__main__':
     # Uncomment the next line only if you want to initialize the database upon startup
-#    init_db()
+    init_db()
    
     # Uncomment the next lines only if you want to drop tables for testing purposes
-    with app.app_context():
-        drop_all_tables()
+#    with app.app_context():
+#        drop_all_tables()
     
     app.run(host='0.0.0.0', port=5000, debug=True)
