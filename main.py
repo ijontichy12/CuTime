@@ -4,38 +4,35 @@ from flask_login import LoginManager, UserMixin, login_user, login_required, log
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime
 import os
+from sqlalchemy import MetaData
 
 # Use environment variables for database connection (assuming DATABASE_URL exists)
 DATABASE_URL = os.environ.get("DATABASE_URL")
-
 # Fix the SQLAlchemy postgres vs postgresql issue
 if DATABASE_URL and DATABASE_URL.startswith("postgres://"):
     DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
     print("Modified DATABASE_URL:", DATABASE_URL)
 
 app = Flask(__name__)
-
 app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URL
 print("Final SQLALCHEMY_DATABASE_URI:", app.config['SQLALCHEMY_DATABASE_URI'])
-
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY')
+print("SECRET_KEY:", app.config['SECRET_KEY'])
 
 db = SQLAlchemy(app)
-
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'
 
 class User(UserMixin, db.Model):
     __tablename__ = 'users'  
-    
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(150), unique=True, nullable=False)
     password = db.Column(db.String(150), nullable=False)
     team = db.relationship('Team', backref='manager', uselist=False)
 
     def __repr__(self):
-        return f'<User {self.username}>'
+        return f'User({self.username})'
 
 class Team(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -76,46 +73,67 @@ def init_db():
             inspector = db.inspect(db.engine)
             existing_tables = inspector.get_table_names()
             print(f"Existing tables: {existing_tables}")
-            
             print("Creating all database tables...")
             db.create_all()
-            
             # Check tables again
             inspector = db.inspect(db.engine)
             tables_after = inspector.get_table_names()
             print(f"Tables after creation: {tables_after}")
-            
             print("Checking for existing admin user...")
             admin = User.query.filter_by(username='admin').first()
             if not admin:
                 print("Creating admin user...")
                 test_user = User(username='admin', 
-                               password=generate_password_hash('admin', method='pbkdf2:sha256'))
+                                 password=generate_password_hash('admin', method='pbkdf2:sha256'))
                 db.session.add(test_user)
-                
                 # Check if team1 already exists
                 team1 = Team.query.filter_by(name='team1').first()
                 if not team1:
                     team1 = Team(name='team1', manager=test_user)
                     db.session.add(team1)
-                
                 print("Creating admin2 user...")
                 test_user2 = User(username='admin2', 
-                                password=generate_password_hash('admin', method='pbkdf2:sha256'))
+                                  password=generate_password_hash('admin', method='pbkdf2:sha256'))
                 db.session.add(test_user2)
-                
                 # Check if team2 already exists
                 team2 = Team.query.filter_by(name='team2').first()
                 if not team2:
                     team2 = Team(name='team2', manager=test_user2)
                     db.session.add(team2)
-                
                 print("Committing changes to database...")
                 db.session.commit()
                 print("Database initialized successfully!")
     except Exception as e:
         print(f"Error initializing database: {e}")
         print(f"Error type: {type(e)}")
+        db.session.rollback()
+        raise e
+
+def drop_all_tables():
+    print("Dropping all tables...")
+    try:
+        with app.app_context():
+            # Reflect the current state of the database into a new metadata object
+            meta = MetaData()
+            meta.reflect(bind=db.engine)
+            
+            # Log the tables before dropping
+            print("Tables before dropping:", meta.tables.keys())
+            
+            # Drop all tables using the reflected metadata
+            db.drop_all()
+            
+            # Verify that tables have been dropped
+            inspector = db.inspect(db.engine)
+            remaining_tables = inspector.get_table_names()
+            print("Remaining tables after dropping:", remaining_tables)
+            
+            if not remaining_tables:
+                print("All tables dropped successfully.")
+            else:
+                print("Some tables were not dropped:", remaining_tables)
+    except Exception as e:
+        print(f"Error dropping tables: {e}")
         db.session.rollback()
         raise e
 
@@ -146,7 +164,6 @@ def dashboard():
     work_times = []
     for employee in employees:
         work_times.extend(WorkTime.query.filter_by(employee_id=employee.id).all())
-
     # Group work times by date
     work_times_by_date = {}
     for worktime in work_times:
@@ -154,7 +171,6 @@ def dashboard():
         if date_str not in work_times_by_date:
             work_times_by_date[date_str] = []
         work_times_by_date[date_str].append(worktime)
-
     return render_template('dashboard.html', employees=employees, work_times_by_date=work_times_by_date)
 
 @app.route('/add_employee', methods=['GET', 'POST'])
@@ -179,14 +195,11 @@ def add_worktime(employee_id):
         end_time_str = request.form['end_time']
         status = request.form['status']
         comment = request.form['comment']
-
         # Convert date string to Python date object
         date = datetime.strptime(date_str, '%Y-%m-%d').date()
-
         # Convert time strings to Python time objects
         start_time = datetime.strptime(start_time_str, '%H:%M').time() if start_time_str else None
         end_time = datetime.strptime(end_time_str, '%H:%M').time() if end_time_str else None
-
         new_worktime = WorkTime(
             employee_id=employee.id,
             date=date,
@@ -210,16 +223,13 @@ def edit_worktime(worktime_id):
         end_time_str = request.form['end_time']
         status = request.form['status']
         comment = request.form['comment']
-
         # Convert date string to Python date object
         worktime.date = datetime.strptime(date_str, '%Y-%m-%d').date()
-
         # Convert time strings to Python time objects
         worktime.start_time = datetime.strptime(start_time_str, '%H:%M').time() if start_time_str else None
         worktime.end_time = datetime.strptime(end_time_str, '%H:%M').time() if end_time_str else None
         worktime.status = status
         worktime.comment = comment
-
         db.session.commit()
         return redirect(url_for('dashboard'))
     return render_template('edit_worktime.html', worktime=worktime)
@@ -232,7 +242,12 @@ def delete_worktime(worktime_id):
     db.session.commit()
     return redirect(url_for('dashboard'))
 
-
 if __name__ == '__main__':
-    init_db()
-    app.run(host='0.0.0.0', port=5000)
+    # Uncomment the next line only if you want to initialize the database upon startup
+#    init_db()
+   
+    # Uncomment the next lines only if you want to drop tables for testing purposes
+    with app.app_context():
+        drop_all_tables()
+    
+    app.run(host='0.0.0.0', port=5000, debug=True)
