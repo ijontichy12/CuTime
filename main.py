@@ -3,8 +3,8 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime
-import os
 from sqlalchemy import MetaData
+import os
 
 # Use environment variables for database connection (assuming DATABASE_URL exists)
 DATABASE_URL = os.environ.get("DATABASE_URL")
