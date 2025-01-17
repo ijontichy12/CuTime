@@ -18,8 +18,7 @@ app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URL
 print("Final SQLALCHEMY_DATABASE_URI:", app.config['SQLALCHEMY_DATABASE_URI'])
 
-
-app.config['SECRET_KEY'] = 'your_secret_key'  # Replace with a strong secret key
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY')
 
 db = SQLAlchemy(app)
 
@@ -233,7 +232,7 @@ def delete_worktime(worktime_id):
     db.session.commit()
     return redirect(url_for('dashboard'))
 
-    init_db()
 
 if __name__ == '__main__':
+    init_db()
     app.run(host='0.0.0.0')

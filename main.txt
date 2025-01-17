@@ -5,24 +5,43 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime
 import os
 
+# Use environment variables for database connection (assuming DATABASE_URL exists)
+DATABASE_URL = os.environ.get("DATABASE_URL")
+
+# Fix the SQLAlchemy postgres vs postgresql issue
+if DATABASE_URL and DATABASE_URL.startswith("postgres://"):
+    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
+    print("Modified DATABASE_URL:", DATABASE_URL)
+
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'your_secret_key'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://marco:2805@localhost/cutime_db'
+
+app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URL
+print("Final SQLALCHEMY_DATABASE_URI:", app.config['SQLALCHEMY_DATABASE_URI'])
+
+
+app.config['SECRET_KEY'] = 'your_secret_key'  # Replace with a strong secret key
+
 db = SQLAlchemy(app)
+
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'
 
 class User(UserMixin, db.Model):
+    __tablename__ = 'users'  
+    
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(150), unique=True, nullable=False)
     password = db.Column(db.String(150), nullable=False)
     team = db.relationship('Team', backref='manager', uselist=False)
 
+    def __repr__(self):
+        return f'<User {self.username}>'
+
 class Team(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(150), unique=True, nullable=False)
-    manager_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    manager_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     employees = db.relationship('Employee', secondary='team_employee', back_populates='teams')
 
 class Employee(db.Model):
@@ -51,19 +70,55 @@ def load_user(user_id):
     return User.query.get(int(user_id))
 
 def init_db():
-    with app.app_context():
-        db.create_all()  # Create all tables
-        if not User.query.filter_by(username='admin').first():
-            test_user = User(username='admin', password=generate_password_hash('admin', method='pbkdf2:sha256'))
-            db.session.add(test_user)
-            team1 = Team(name='team1', manager=test_user)
-            db.session.add(team1)
-        if not User.query.filter_by(username='admin2').first():
-            test_user2 = User(username='admin2', password=generate_password_hash('admin', method='pbkdf2:sha256'))
-            db.session.add(test_user2)
-            team2 = Team(name='team2', manager=test_user2)
-            db.session.add(team2)
-        db.session.commit()
+    print("Starting database initialization...")
+    try:
+        with app.app_context():
+            # Get list of existing tables
+            inspector = db.inspect(db.engine)
+            existing_tables = inspector.get_table_names()
+            print(f"Existing tables: {existing_tables}")
+            
+            print("Creating all database tables...")
+            db.create_all()
+            
+            # Check tables again
+            inspector = db.inspect(db.engine)
+            tables_after = inspector.get_table_names()
+            print(f"Tables after creation: {tables_after}")
+            
+            print("Checking for existing admin user...")
+            admin = User.query.filter_by(username='admin').first()
+            if not admin:
+                print("Creating admin user...")
+                test_user = User(username='admin', 
+                               password=generate_password_hash('admin', method='pbkdf2:sha256'))
+                db.session.add(test_user)
+                team1 = Team(name='team1', manager=test_user)
+                db.session.add(team1)
+                
+                print("Creating admin2 user...")
+                test_user2 = User(username='admin2', 
+                                password=generate_password_hash('admin', method='pbkdf2:sha256'))
+                db.session.add(test_user2)
+                team2 = Team(name='team2', manager=test_user2)
+                db.session.add(team2)
+                
+                print("Committing changes to database...")
+                db.session.commit()
+                print("Database initialized successfully!")
+    except Exception as e:
+        print(f"Error initializing database: {e}")
+        print(f"Error type: {type(e)}")
+        db.session.rollback()
+        raise e
+
+with app.app_context():
+    try:
+        print("Initializing database tables...")
+        db.create_all()
+        print("Database tables created successfully!")
+    except Exception as e:
+        print(f"Error creating tables: {e}")
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -178,6 +233,7 @@ def delete_worktime(worktime_id):
     db.session.commit()
     return redirect(url_for('dashboard'))
 
-if __name__ == '__main__':
     init_db()
-    app.run(host='0.0.0.0', port=5000)
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0')
