@@ -92,15 +92,23 @@ def init_db():
                 test_user = User(username='admin', 
                                password=generate_password_hash('admin', method='pbkdf2:sha256'))
                 db.session.add(test_user)
-                team1 = Team(name='team1', manager=test_user)
-                db.session.add(team1)
+                
+                # Check if team1 already exists
+                team1 = Team.query.filter_by(name='team1').first()
+                if not team1:
+                    team1 = Team(name='team1', manager=test_user)
+                    db.session.add(team1)
                 
                 print("Creating admin2 user...")
                 test_user2 = User(username='admin2', 
                                 password=generate_password_hash('admin', method='pbkdf2:sha256'))
                 db.session.add(test_user2)
-                team2 = Team(name='team2', manager=test_user2)
-                db.session.add(team2)
+                
+                # Check if team2 already exists
+                team2 = Team.query.filter_by(name='team2').first()
+                if not team2:
+                    team2 = Team(name='team2', manager=test_user2)
+                    db.session.add(team2)
                 
                 print("Committing changes to database...")
                 db.session.commit()
@@ -110,14 +118,6 @@ def init_db():
         print(f"Error type: {type(e)}")
         db.session.rollback()
         raise e
-
-with app.app_context():
-    try:
-        print("Initializing database tables...")
-        db.create_all()
-        print("Database tables created successfully!")
-    except Exception as e:
-        print(f"Error creating tables: {e}")
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -235,4 +235,4 @@ def delete_worktime(worktime_id):
 
 if __name__ == '__main__':
     init_db()
-    app.run(host='0.0.0.0')
+    app.run(host='0.0.0.0', port=5000)
