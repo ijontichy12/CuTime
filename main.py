@@ -28,11 +28,15 @@ login_manager.init_app(app)
 login_manager.login_view = 'login'
 
 class User(UserMixin, db.Model):
-    __tablename__ = 'users'  # Change the table name to 'users' instead of default 'user'
+    __tablename__ = 'users'  
+    
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(150), unique=True, nullable=False)
     password = db.Column(db.String(150), nullable=False)
     team = db.relationship('Team', backref='manager', uselist=False)
+
+    def __repr__(self):
+        return f'<User {self.username}>'
 
 class Team(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -229,8 +233,6 @@ def delete_worktime(worktime_id):
     db.session.commit()
     return redirect(url_for('dashboard'))
 
-@app.before_first_request
-def initialize_database():
     init_db()
 
 if __name__ == '__main__':
