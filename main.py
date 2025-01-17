@@ -251,3 +251,7 @@ if __name__ == '__main__':
 #        drop_all_tables()
     
     app.run(host='0.0.0.0', port=5000, debug=True)
+else:
+    # Call init_db() when running in a production environment (e.g., with gunicorn)
+    with app.app_context():
+        init_db()
