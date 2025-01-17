@@ -69,14 +69,22 @@ def init_db():
     print("Starting database initialization...")
     try:
         with app.app_context():
+            # Get list of existing tables
+            inspector = db.inspect(db.engine)
+            existing_tables = inspector.get_table_names()
+            print(f"Existing tables: {existing_tables}")
+            
             print("Creating all database tables...")
-            # Create all tables
-            db.drop_all()  # Be careful with this in production!
             db.create_all()
             
+            # Check tables again
+            inspector = db.inspect(db.engine)
+            tables_after = inspector.get_table_names()
+            print(f"Tables after creation: {tables_after}")
+            
             print("Checking for existing admin user...")
-            # Check if admin user exists
-            if not User.query.filter_by(username='admin').first():
+            admin = User.query.filter_by(username='admin').first()
+            if not admin:
                 print("Creating admin user...")
                 test_user = User(username='admin', 
                                password=generate_password_hash('admin', method='pbkdf2:sha256'))
@@ -84,7 +92,6 @@ def init_db():
                 team1 = Team(name='team1', manager=test_user)
                 db.session.add(team1)
                 
-            if not User.query.filter_by(username='admin2').first():
                 print("Creating admin2 user...")
                 test_user2 = User(username='admin2', 
                                 password=generate_password_hash('admin', method='pbkdf2:sha256'))
@@ -92,13 +99,22 @@ def init_db():
                 team2 = Team(name='team2', manager=test_user2)
                 db.session.add(team2)
                 
-            print("Committing changes to database...")
-            db.session.commit()
-            print("Database initialized successfully!")
+                print("Committing changes to database...")
+                db.session.commit()
+                print("Database initialized successfully!")
     except Exception as e:
         print(f"Error initializing database: {e}")
         print(f"Error type: {type(e)}")
+        db.session.rollback()
         raise e
+
+with app.app_context():
+    try:
+        print("Initializing database tables...")
+        db.create_all()
+        print("Database tables created successfully!")
+    except Exception as e:
+        print(f"Error creating tables: {e}")
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -213,7 +229,8 @@ def delete_worktime(worktime_id):
     db.session.commit()
     return redirect(url_for('dashboard'))
 
-    print("Starting application...")
+@app.before_first_request
+def initialize_database():
     init_db()
 
 if __name__ == '__main__':
