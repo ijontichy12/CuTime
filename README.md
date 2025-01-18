@@ -1,87 +1,75 @@
-Employee Work Time Tracker
+# Employee Work Time Tracker
 
 A Flask-based web application for tracking employee work times. Designed for managers to add employees, log work times, and view summaries.
-Features
+## Features
 
-    User Authentication: Secure login and logout functionality.
+    **User Authentication:** Secure login and logout functionality.
 
-    Employee Management: Add and manage employees.
+    **Employee Management:** Add and manage employees.
 
-    Work Time Tracking: Log work times for employees, including start time, end time, status, and comments.
+    **Work Time Tracking:** Log work times for employees, including start time, end time, status, and comments.
 
-    Dashboard: View a summary of work times grouped by date and employee.
+    **Dashboard:** View a summary of work times grouped by date and employee.
 
-    Responsive Design: Built with Tailwind CSS for a responsive and modern UI.
+    **Responsive Design:** Built with Tailwind CSS for a responsive and modern UI.
 
-Technologies Used
+## Technologies Used
 
-    Backend: Flask (Python)
+    **Backend:** Flask (Python)
 
-    Frontend: HTML, Tailwind CSS
+    **Frontend:** HTML, Tailwind CSS
 
-    Database: PostgreSQL
+    **Database:** PostgreSQL
 
-    Authentication: Flask-Login
+    **Authentication:** Flask-Login
 
-    Deployment: Render (or your preferred hosting service)
+    **Deployment:** Render (or your preferred hosting service)
 
-Setup Instructions
-Prerequisites
+## Setup Instructions
+**Prerequisites**
 
     Python 3.x
 
     PostgreSQL
 
-    Pipenv (optional, for virtual environment management)
+    Pipenv ***(optional, for virtual environment management)***
 
-Installation
+## Installation
 
-    Clone the Repository:
-    bash
-    Copy
+**Clone the Repository:**
 
     git clone https://github.com/your-username/employee-work-time-tracker.git
     cd employee-work-time-tracker
 
-    Set Up a Virtual Environment (optional but recommended):
-    bash
-    Copy
-
+**Set Up a Virtual Environment (optional but recommended):**
+    
     pip install pipenv
     pipenv shell
 
-    Install Dependencies:
-    bash
-    Copy
+**Install Dependencies:**
 
     pip install -r requirements.txt
 
-    Set Up Environment Variables:
+**Set Up Environment Variables:**
     Create a .env file in the root directory and add the following variables:
-    plaintext
-    Copy
 
-    DATABASE_URL=postgresql://username:password@localhost:5432/employee_tracker
+    DATABASE_URL=postgresql://username:password@localhost:5432/employee_db
     SECRET_KEY=your_secret_key_here
 
-    Initialize the Database:
+**Initialize the Database:**
     Run the following command to create the database tables and seed initial data:
-    bash
-    Copy
 
     python main.py
 
-    Run the Application:
-    bash
-    Copy
+**Run the Application:**
 
     python main.py
 
     The application will be available at http://localhost:5000.
 
-Deployment
+## Deployment
 
-To deploy the application on Render:
+**To deploy the application on Render:**
 
     Create a Render Account: Sign up at Render.
 
@@ -91,26 +79,26 @@ To deploy the application on Render:
 
     Deploy: Trigger the deployment process.
 
-Database Schema
-Tables
+### Database Schema
+**Tables**
 
-    Users: Stores user information (managers).
+    Users: *Stores user information (managers).
 
-        id, username, password, team (relationship with Team table).
+        id, username, password, team (relationship with Team table).*
 
-    Teams: Stores team information.
+    Teams: *Stores team information.
 
-        id, name, manager_id (foreign key to Users table).
+        id, name, manager_id (foreign key to Users table).*
 
-    Employees: Stores employee information.
+    Employees: *Stores employee information.
 
-        id, name, teams (many-to-many relationship with Teams table).
+        id, name, teams (many-to-many relationship with Teams table).*
 
-    WorkTimes: Stores work time entries.
+    WorkTimes: *Stores work time entries.
 
-        id, employee_id, date, start_time, end_time, status, comment.
+        id, employee_id, date, start_time, end_time, status, comment.*
 
-Relationships
+**Relationships**
 
     A User (manager) can manage one Team.
 
@@ -120,14 +108,14 @@ Relationships
 
     Each Employee can have multiple WorkTime entries.
 
-Environment Variables
+### Environment Variables
 
     DATABASE_URL: The connection URL for the PostgreSQL database.
 
     SECRET_KEY: A secret key for Flask session management.
 
-Notes
+# Notes
 
-    The application uses Flask-Login for authentication and Tailwind CSS for styling.
+    ***The application uses Flask-Login for authentication and Tailwind CSS for styling.
 
-    The database is initialized with a default admin user (admin/admin) and two teams (team1, team2).
+    The database is initialized with a default admin user (admin/admin) and two teams (team1, team2).***
