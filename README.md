@@ -3,36 +3,37 @@
 A Flask-based web application for tracking employee work times. Designed for managers to add employees, log work times, and view summaries.
 ## Features
 
-  **User Authentication:** Secure login and logout functionality.
+**User Authentication:** Secure login and logout functionality.
 
-  **Employee Management:** Add and manage employees.
+**Employee Management:** Add and manage employees.
 
-  **Work Time Tracking:** Log work times for employees, including start time, end time, status, and comments.
+**Work Time Tracking:** Log work times for employees, including start time, end time, status, and comments.
 
-  **Dashboard:** View a summary of work times grouped by date and employee.
+**Dashboard:** View a summary of work times grouped by date and employee.
 
-  **Responsive Design:** Built with Tailwind CSS for a responsive and modern UI.
+**Responsive Design:** Built with Tailwind CSS for a responsive and modern UI.
 
 ## Technologies Used
 
-  **Backend:** Flask (Python)
+**Backend:** Flask (Python)
 
-  **Frontend:** HTML, Tailwind CSS
+**Frontend:** HTML, Tailwind CSS
 
-  **Database:** PostgreSQL
+**Database:** PostgreSQL
 
-  **Authentication:** Flask-Login
+**Authentication:** Flask-Login
 
-  **Deployment:** Render (or your preferred hosting service)
+**Deployment:** Render (or your preferred hosting service)
 
 ## Setup Instructions
+
 **Prerequisites**
 
-    Python 3.x
+Python 3.x
 
-    PostgreSQL
+PostgreSQL
 
-    ***Pipenv (optional, for virtual environment management)***
+***Pipenv (optional, for virtual environment management)***
 
 ## Installation
 
@@ -52,7 +53,7 @@ A Flask-based web application for tracking employee work times. Designed for man
 
 **Set Up Environment Variables:**
   
-  *Create a .env file in the root directory and add the following variables:*
+*Create a .env file in the root directory and add the following variables:*
 
     DATABASE_URL=postgresql://username:password@localhost:5432/employee_db
     SECRET_KEY=your_secret_key_here
@@ -61,7 +62,7 @@ A Flask-based web application for tracking employee work times. Designed for man
 
     python main.py
 
-  *The application will be available at http://localhost:5000.*
+*The application will be available at http://localhost:5000.*
 
 ## Deployment
 
@@ -79,21 +80,21 @@ A Flask-based web application for tracking employee work times. Designed for man
 
 **Tables**
 
-  Users: *Stores user information (managers).*
+Users: *Stores user information (managers).*
 
-        id, username, password, team (relationship with Team table).
+    id, username, password, team (relationship with Team table).
 
-  Teams: *Stores team information.*
+Teams: *Stores team information.*
 
-        id, name, manager_id (foreign key to Users table).
+    id, name, manager_id (foreign key to Users table).
 
-  Employees: *Stores employee information.*
+Employees: *Stores employee information.*
 
-        id, name, teams (many-to-many relationship with Teams table).
+    id, name, teams (many-to-many relationship with Teams table).
 
-  WorkTimes: *Stores work time entries.*
+WorkTimes: *Stores work time entries.*
 
-        id, employee_id, date, start_time, end_time, status, comment.
+    id, employee_id, date, start_time, end_time, status, comment.
 
 **Relationships**
 
