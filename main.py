@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, flash
+from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -9,6 +9,8 @@ from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SubmitField, SelectField, TextAreaField, DateField, TimeField
 from wtforms.validators import DataRequired, Length, EqualTo, ValidationError, Optional
 from flask_wtf.csrf import CSRFProtect
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 
 # Use environment variables for database connection (assuming DATABASE_URL exists)
 DATABASE_URL = os.environ.get("DATABASE_URL")
@@ -25,6 +27,13 @@ print("SECRET_KEY:", app.config['SECRET_KEY'])
 
 # Initialize CSRF protection
 csrf = CSRFProtect(app)
+
+# Initialize Flask-Limiter
+limiter = Limiter(
+    get_remote_address,
+    app=app,
+    default_limits=["5 per minute"]  # Default rate limit for all routes
+)
 
 db = SQLAlchemy(app)
 login_manager = LoginManager()
@@ -192,6 +201,7 @@ def index():
     return redirect(url_for('login'))
 
 @app.route('/login', methods=['GET', 'POST'])
+@limiter.limit("5 per minute")  # Apply rate limiting to the login route
 def login():
     form = LoginForm()
     if form.validate_on_submit():
@@ -204,6 +214,10 @@ def login():
         else:
             flash('Ungltige Anmeldeinformationen')
     return render_template('login.html', form=form)
+
+@app.errorhandler(429)
+def ratelimit_handler(e):
+    return render_template('429.html'), 429
 
 @app.route('/logout')
 @login_required
@@ -310,4 +324,3 @@ else:
     # Call init_db() when running in a production environment (e.g., with gunicorn)
     with app.app_context():
         init_db()
-
