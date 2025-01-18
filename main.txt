@@ -5,10 +5,6 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime
 from sqlalchemy import MetaData
 import os
-from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, SubmitField, SelectField, TextAreaField, DateField, TimeField
-from wtforms.validators import DataRequired, Length, EqualTo, ValidationError, Optional
-from flask_wtf.csrf import CSRFProtect
 
 # Use environment variables for database connection (assuming DATABASE_URL exists)
 DATABASE_URL = os.environ.get("DATABASE_URL")
@@ -20,18 +16,14 @@ if DATABASE_URL and DATABASE_URL.startswith("postgres://"):
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URL
 print("Final SQLALCHEMY_DATABASE_URI:", app.config['SQLALCHEMY_DATABASE_URI'])
-app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY') or 'your_secret_key_here'
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY')
 print("SECRET_KEY:", app.config['SECRET_KEY'])
-
-# Initialize CSRF protection
-csrf = CSRFProtect(app)
 
 db = SQLAlchemy(app)
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'
 
-# User model
 class User(UserMixin, db.Model):
     __tablename__ = 'users'  
     id = db.Column(db.Integer, primary_key=True)
@@ -42,21 +34,18 @@ class User(UserMixin, db.Model):
     def __repr__(self):
         return f'User({self.username})'
 
-# Team model
 class Team(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(150), unique=True, nullable=False)
     manager_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     employees = db.relationship('Employee', secondary='team_employee', back_populates='teams')
 
-# Employee model
 class Employee(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(150), nullable=False)
     teams = db.relationship('Team', secondary='team_employee', back_populates='employees')
     work_times = db.relationship('WorkTime', backref='employee', lazy=True)
 
-# WorkTime model
 class WorkTime(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     employee_id = db.Column(db.Integer, db.ForeignKey('employee.id'), nullable=False)
@@ -76,37 +65,6 @@ team_employee = db.Table('team_employee',
 def load_user(user_id):
     return User.query.get(int(user_id))
 
-# WTForms Forms
-class LoginForm(FlaskForm):
-    username = StringField('Benutzername', validators=[DataRequired(), Length(min=2, max=150)])
-    password = PasswordField('Passwort', validators=[DataRequired()])
-    submit = SubmitField('Anmelden')
-
-class AddEmployeeForm(FlaskForm):
-    name = StringField('Name', validators=[DataRequired(), Length(min=2, max=150)])
-    submit = SubmitField('Mitarbeiter hinzufgen')
-
-class AddWorkTimeForm(FlaskForm):
-    date = DateField('Datum', validators=[DataRequired()])
-    start_time = TimeField('Startzeit', validators=[Optional()])
-    end_time = TimeField('Endzeit', validators=[Optional()])
-    status = SelectField('Status', choices=[('Present', 'Anwesend'), ('Absent', 'Abwesend'), ('Holiday', 'Urlaub'), ('Ill', 'Krank')], validators=[DataRequired()])
-    comment = TextAreaField('Kommentar', validators=[Length(max=200)])
-    submit = SubmitField('Absenden')
-
-    def validate(self, extra_validators=None):
-        rv = super(AddWorkTimeForm, self).validate()
-        if self.status.data in ['Present', 'Present']:
-            if not self.start_time.data or not self.end_time.data:
-                self.start_time.errors.append('Start- und Endzeit sind erforderlich.')
-                self.end_time.errors.append('Start- und Endzeit sind erforderlich.')
-                rv = False
-        return rv
-
-class EditWorkTimeForm(AddWorkTimeForm):
-    submit = SubmitField('Speichern')
-
-# Initialize database
 def init_db():
     print("Starting database initialization...")
     try:
@@ -193,17 +151,16 @@ def index():
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-    form = LoginForm()
-    if form.validate_on_submit():
-        username = form.username.data
-        password = form.password.data
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
         user = User.query.filter_by(username=username).first()
         if user and check_password_hash(user.password, password):
             login_user(user)
             return redirect(url_for('dashboard'))
         else:
-            flash('Ungltige Anmeldeinformationen')
-    return render_template('login.html', form=form)
+            flash('Ungültige Anmeldeinformationen')
+    return render_template('login.html')
 
 @app.route('/logout')
 @login_required
@@ -231,28 +188,30 @@ def dashboard():
 @app.route('/add_employee', methods=['GET', 'POST'])
 @login_required
 def add_employee():
-    form = AddEmployeeForm()
-    if form.validate_on_submit():
-        name = form.name.data
+    if request.method == 'POST':
+        name = request.form['name']
         new_employee = Employee(name=name)
         new_employee.teams.append(current_user.team)
         db.session.add(new_employee)
         db.session.commit()
-        flash('Mitarbeiter erfolgreich hinzugefgt')
         return redirect(url_for('dashboard'))
-    return render_template('add_employee.html', form=form)
+    return render_template('add_employee.html')
 
 @app.route('/add_worktime/<int:employee_id>', methods=['GET', 'POST'])
 @login_required
 def add_worktime(employee_id):
     employee = Employee.query.join(team_employee, Employee.id == team_employee.c.employee_id).join(Team, team_employee.c.team_id == Team.id).filter(Employee.id == employee_id, Team.manager_id == current_user.id).first_or_404()
-    form = AddWorkTimeForm()
-    if form.validate_on_submit():
-        date = form.date.data
-        start_time = form.start_time.data
-        end_time = form.end_time.data
-        status = form.status.data
-        comment = form.comment.data
+    if request.method == 'POST':
+        date_str = request.form['date']
+        start_time_str = request.form['start_time']
+        end_time_str = request.form['end_time']
+        status = request.form['status']
+        comment = request.form['comment']
+        # Convert date string to Python date object
+        date = datetime.strptime(date_str, '%Y-%m-%d').date()
+        # Convert time strings to Python time objects, handling both formats
+        start_time = parse_time(start_time_str)
+        end_time = parse_time(end_time_str)
         new_worktime = WorkTime(
             employee_id=employee.id,
             date=date,
@@ -263,25 +222,29 @@ def add_worktime(employee_id):
         )
         db.session.add(new_worktime)
         db.session.commit()
-        flash('Arbeitszeit erfolgreich hinzugefgt')
         return redirect(url_for('dashboard'))
-    return render_template('add_worktime.html', form=form, employee=employee)
+    return render_template('add_worktime.html', employee=employee)
 
 @app.route('/edit_worktime/<int:worktime_id>', methods=['GET', 'POST'])
 @login_required
 def edit_worktime(worktime_id):
     worktime = WorkTime.query.join(Employee, WorkTime.employee_id == Employee.id).join(team_employee, Employee.id == team_employee.c.employee_id).join(Team, team_employee.c.team_id == Team.id).filter(WorkTime.id == worktime_id, Team.manager_id == current_user.id).first_or_404()
-    form = EditWorkTimeForm(obj=worktime)
-    if form.validate_on_submit():
-        worktime.date = form.date.data
-        worktime.start_time = form.start_time.data
-        worktime.end_time = form.end_time.data
-        worktime.status = form.status.data
-        worktime.comment = form.comment.data
+    if request.method == 'POST':
+        date_str = request.form['date']
+        start_time_str = request.form['start_time']
+        end_time_str = request.form['end_time']
+        status = request.form['status']
+        comment = request.form['comment']
+        # Convert date string to Python date object
+        worktime.date = datetime.strptime(date_str, '%Y-%m-%d').date()
+        # Convert time strings to Python time objects, handling both formats
+        worktime.start_time = parse_time(start_time_str)
+        worktime.end_time = parse_time(end_time_str)
+        worktime.status = status
+        worktime.comment = comment
         db.session.commit()
-        flash('Arbeitszeit erfolgreich bearbeitet')
         return redirect(url_for('dashboard'))
-    return render_template('edit_worktime.html', form=form, worktime=worktime)
+    return render_template('edit_worktime.html', worktime=worktime)
 
 @app.route('/delete_worktime/<int:worktime_id>', methods=['POST'])
 @login_required
@@ -289,7 +252,6 @@ def delete_worktime(worktime_id):
     worktime = WorkTime.query.join(Employee, WorkTime.employee_id == Employee.id).join(team_employee, Employee.id == team_employee.c.employee_id).join(Team, team_employee.c.team_id == Team.id).filter(WorkTime.id == worktime_id, Team.manager_id == current_user.id).first_or_404()
     db.session.delete(worktime)
     db.session.commit()
-    flash('Arbeitszeit erfolgreich geloscht')
     return redirect(url_for('dashboard'))
 
 if __name__ == '__main__':
@@ -297,12 +259,11 @@ if __name__ == '__main__':
     init_db()
    
     # Uncomment the next lines only if you want to drop tables for testing purposes
-    # with app.app_context():
-    #     drop_all_tables()
+#    with app.app_context():
+#        drop_all_tables()
     
     app.run(host='0.0.0.0', port=5000, debug=True)
 else:
     # Call init_db() when running in a production environment (e.g., with gunicorn)
     with app.app_context():
         init_db()
-
