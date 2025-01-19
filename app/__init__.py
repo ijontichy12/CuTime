@@ -1,5 +1,5 @@
 # app/__init__.py
-from flask import Flask, render_template  # Ensure render_template is imported
+from flask import Flask, render_template
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
 from flask_limiter import Limiter
@@ -11,10 +11,10 @@ db = SQLAlchemy()
 login_manager = LoginManager()
 csrf = CSRFProtect()
 
-# Initialize Flask-Limiter with in-memory storage
+# Initialize Flask-Limiter without default limits
 limiter = Limiter(
-    key_func=get_remote_address,
-    default_limits=["5 per minute"]  # Default rate limit for all routes
+    key_func=get_remote_address,  # Use the client's IP address for rate limiting
+    storage_uri="memory://"  # Use in-memory storage (for development)
 )
 
 def create_app():

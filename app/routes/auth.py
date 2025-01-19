@@ -17,7 +17,7 @@ def index():
     return redirect(url_for('auth.login'))
 
 @auth_bp.route('/login', methods=['GET', 'POST'])
-@limiter.limit("5 per minute")  # Apply rate limiting to the login route
+@limiter.limit("5 per minute")  # Apply rate limiting only to the login route
 def login():
     form = LoginForm()
     if form.validate_on_submit():
