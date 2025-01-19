@@ -9,17 +9,17 @@
             {{ form.hidden_tag() }}
             <div class="mb-4">
                 {{ form.date.label(class="block text-sm font-medium text-green-500") }}
-                {{ form.date(class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500", value=worktime.date.strftime('%Y-%m-%d')) }}
+                {{ form.date(class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500") }}
             </div>
 
             <div id="start_time_field" class="mb-4">
                 {{ form.start_time.label(class="block text-sm font-medium text-green-500") }}
-                {{ form.start_time(class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500", value=worktime.start_time) }}
+                {{ form.start_time(class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500") }}
             </div>
 
             <div id="end_time_field" class="mb-4">
                 {{ form.end_time.label(class="block text-sm font-medium text-green-500") }}
-                {{ form.end_time(class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500", value=worktime.end_time) }}
+                {{ form.end_time(class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500") }}
             </div>
 
             <div class="mb-4">
@@ -46,7 +46,7 @@
             const endTimeField = document.getElementById('end_time');
 
             if (status !== 'Holiday' && status !== 'Ill' && status !== 'Absent') {
-                if (!startTimeField.value || !endTimeTimeField.value) {
+                if (!startTimeField.value || !endTimeField.value) {
                     alert('Bitte geben Sie Start- und Endzeit an.');
                     return false;
                 }
@@ -59,4 +59,3 @@
         toggleTimeFields();
     </script>
 {% endblock %}
-

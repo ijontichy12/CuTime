@@ -1,0 +1,48 @@
+<!-- app/templates/errors/429.html -->
+{% extends "base.html" %}
+
+{% block title %}Too Many Requests{% endblock %}
+
+{% block content %}
+    <div class="text-center mt-10">
+        <div class="text-6xl mb-4">😱</div>
+        <h1 class="text-4xl font-bold text-red-600 mb-4">Oops! Too Many Requests</h1>
+        <p class="text-lg text-gray-700 mb-4">
+            Your device has made too many requests. Please wait <span id="countdown">60</span> seconds and try again.
+        </p>
+        <p class="text-lg text-gray-700 mb-6">
+            If the issue persists, restart your device or contact support.
+        </p>
+        <a id="login-button" href="{{ url_for('auth.login') }}" class="bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600 transition duration-300 opacity-50 cursor-not-allowed" disabled>
+            Back to Login (60s)
+        </a>
+    </div>
+
+    <script>
+        // Set the countdown time (60 seconds)
+        let timeLeft = 60;
+
+        // Get references to the countdown and button elements
+        const countdownElement = document.getElementById('countdown');
+        const loginButton = document.getElementById('login-button');
+
+        // Update the countdown every second
+        const countdownInterval = setInterval(() => {
+            timeLeft--;
+
+            // Update the countdown display
+            countdownElement.textContent = timeLeft;
+
+            // Update the button text
+            loginButton.textContent = `Back to Login (${timeLeft}s)`;
+
+            // If the countdown reaches 0, enable the button
+            if (timeLeft <= 0) {
+                clearInterval(countdownInterval);
+                loginButton.textContent = 'Back to Login';
+                loginButton.classList.remove('opacity-50', 'cursor-not-allowed');
+                loginButton.removeAttribute('disabled');
+            }
+        }, 1000);
+    </script>
+{% endblock %}
