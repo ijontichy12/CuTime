@@ -18,6 +18,12 @@ def add_employee():
         db.session.add(new_employee)
         db.session.commit()
         flash('Mitarbeiter erfolgreich hinzugefügt')
+        
+        # Ensure the user is authenticated before redirecting
+        if not current_user.is_authenticated:
+            return redirect(url_for('auth.login'))
+        
+        # Redirect to the dashboard
         return redirect(url_for('dashboard.dashboard'))
+    
     return render_template('employee/add_employee.html', form=form)
-

@@ -3,18 +3,18 @@
 {% block title %}Mitarbeiter hinzufügen{% endblock %}
 
 {% block content %}
-    <div class="mt-4">
+    <div class="mt-4 p-4">
         <h2 class="text-2xl font-bold text-green-600 mb-4">Mitarbeiter hinzufügen</h2>
-        <form action="/add_employee" method="post" class="bg-white p-4 rounded-lg shadow-md" onsubmit="return checkDuplicateEmployee()">
+        <form action="/add_employee" method="post" class="bg-white p-6 rounded-lg shadow-md" onsubmit="return checkDuplicateEmployee()">
             {{ form.hidden_tag() }}
-            <div class="mb-4">
-                {{ form.name.label(class="block text-sm font-medium text-green-500") }}
-                {{ form.name(class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500", id="employee_name") }}
+            <div class="mb-6">
+                {{ form.name.label(class="block text-sm font-medium text-green-500 mb-2") }}
+                {{ form.name(class="mt-1 block w-full p-3 border border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500", id="employee_name") }}
             </div>
 
-            <div class="flex justify-between">
-                {{ form.submit(class="bg-green-500 text-white py-2 px-4 rounded-lg shadow-md hover:bg-green-600 transition duration-300") }}
-                <a href="/" class="bg-red-500 text-white py-2 px-4 rounded-lg shadow-md hover:bg-red-600 transition duration-300">Zurück zur Übersicht</a>
+            <div class="flex flex-col sm:flex-row justify-between space-y-4 sm:space-y-0 sm:space-x-4">
+                {{ form.submit(class="bg-green-500 text-white py-3 px-6 rounded-lg shadow-md hover:bg-green-600 transition duration-300 w-full sm:w-auto text-center") }}
+                <a href="/" class="bg-red-500 text-white py-3 px-6 rounded-lg shadow-md hover:bg-red-600 transition duration-300 w-full sm:w-auto text-center">Zurück zur Übersicht</a>
             </div>
         </form>
     </div>
@@ -32,4 +32,3 @@
         }
     </script>
 {% endblock %}
-

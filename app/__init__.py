@@ -34,7 +34,10 @@ def create_app():
     login_manager.init_app(app)
     csrf.init_app(app)
     limiter.init_app(app)
-    
+   
+ # Set the login view for Flask-Login
+    login_manager.login_view = 'auth.login'
+
     # Register Blueprints
     from app.routes.auth import auth_bp
     from app.routes.dashboard import dashboard_bp
@@ -52,3 +55,4 @@ def create_app():
         return render_template('errors/429.html'), 429
     
     return app
+

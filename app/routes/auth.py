@@ -1,6 +1,6 @@
 # app/routes/auth.py
 from flask import Blueprint, render_template, redirect, url_for, flash
-from flask_login import login_user, logout_user
+from flask_login import login_user, logout_user, current_user
 from werkzeug.security import check_password_hash
 from app.forms import LoginForm
 from app.models import User
@@ -14,11 +14,19 @@ def load_user(user_id):
 
 @auth_bp.route('/')
 def index():
-    return redirect(url_for('auth.login'))
+    # Check if the user is already authenticated
+    if current_user.is_authenticated:
+        return redirect(url_for('dashboard.dashboard'))  # Redirect to dashboard if logged in
+    else:
+        return redirect(url_for('auth.login'))  # Redirect to login if not logged in
 
 @auth_bp.route('/login', methods=['GET', 'POST'])
 @limiter.limit("5 per minute")  # Apply rate limiting only to the login route
 def login():
+    # If the user is already authenticated, redirect them to the dashboard
+    if current_user.is_authenticated:
+        return redirect(url_for('dashboard.dashboard'))
+    
     form = LoginForm()
     if form.validate_on_submit():
         username = form.username.data
