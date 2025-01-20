@@ -5,6 +5,7 @@ from flask_login import LoginManager
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from flask_wtf.csrf import CSRFProtect
+from flask_talisman import Talisman  # Import Flask-Talisman
 import os
 
 db = SQLAlchemy()
@@ -29,15 +30,38 @@ def create_app():
         DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
     app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URL
     
+    # Set session lifetime (e.g., 30 minutes)
+    app.config['PERMANENT_SESSION_LIFETIME'] = 1800  # 30 minutes in seconds
+    
+    # Secure cookies (enable only in production)
+    app.config['SESSION_COOKIE_SECURE'] = os.environ.get('FLASK_ENV') == 'production'  # Only send cookies over HTTPS in production
+    app.config['SESSION_COOKIE_HTTPONLY'] = True  # Always prevent JavaScript access to cookies
+    app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'  # Always prevent CSRF attacks
+    
     # Initialize extensions
     db.init_app(app)
     login_manager.init_app(app)
     csrf.init_app(app)
     limiter.init_app(app)
-   
- # Set the login view for Flask-Login
+    
+    # Initialize Flask-Talisman for security headers
+    Talisman(
+        app,
+        force_https=os.environ.get('FLASK_ENV') == 'production',  # Force HTTPS only in production
+        strict_transport_security=os.environ.get('FLASK_ENV') == 'production',  # Enable HSTS only in production
+        session_cookie_secure=os.environ.get('FLASK_ENV') == 'production',
+        content_security_policy={
+            'default-src': "'self'",
+            'style-src': "'self' https://cdn.jsdelivr.net 'unsafe-inline'",  # Allow Tailwind CSS and inline styles
+            'script-src': "'self' 'unsafe-inline'",  # Allow inline scripts
+            'img-src': "'self' data:",  # Allow images from self and data URIs
+            'font-src': "'self' https://cdn.jsdelivr.net",  # Allow fonts from self and CDN
+        }
+    )
+    
+    # Set the login view for Flask-Login
     login_manager.login_view = 'auth.login'
-
+    
     # Register Blueprints
     from app.routes.auth import auth_bp
     from app.routes.dashboard import dashboard_bp
@@ -55,4 +79,3 @@ def create_app():
         return render_template('errors/429.html'), 429
     
     return app
-

@@ -9,7 +9,7 @@
     <!-- Mitarbeiter Section -->
     <section class="mb-8">
         <h2 class="text-xl font-semibold text-green-500 mb-2">Mitarbeiter</h2>
-        <a href="/add_employee" class="bg-green-500 text-white py-3 px-6 rounded-lg shadow-md w-full sm:w-auto hover:bg-green-600 transition duration-300 block text-center mt-4">Mitarbeiter hinzufügen</a>
+        <a href="/add_employee" class="bg-green-500 text-white py-1 px-2 rounded-lg shadow-md w-full sm:w-auto hover:bg-green-600 transition duration-300 block text-center mt-4">Mitarbeiter hinzufügen</a>
 
         {% for employee in employees %}
             <div class="mt-4 p-4 bg-white rounded-lg shadow-md">
@@ -18,50 +18,48 @@
                 
                 <!-- Work Times Section (Hidden by default) -->
                 <div id="worktimes-{{ employee.id }}" class="hidden mt-4">
-                    <a href="/add_worktime/{{ employee.id }}" class="bg-green-500 text-white py-3 px-6 rounded-lg mt-2 w-full sm:w-auto shadow-md hover:bg-green-600 transition duration-300 block text-center">Arbeitszeit hinzufügen</a>
+                    <a href="/add_worktime/{{ employee.id }}" class="bg-green-500 text-white py-1 px-2 rounded-lg mt-2 w-full sm:w-auto shadow-md hover:bg-green-600 transition duration-300 block text-center">Arbeitszeit hinzufügen</a>
 
                     {% for date_str, worktimes in work_times_by_date.items() %}
                         {% set employee_worktimes = worktimes | selectattr('employee_id', 'equalto', employee.id) | list %}
                         {% if employee_worktimes %}
                             <div class="mt-4 p-4 bg-gray-50 rounded-lg shadow-sm">
                                 <h3 class="text-lg font-medium">{{ date_str }}</h3>
-                                <div class="overflow-x-auto">
-                                    <table class="w-full mt-2">
-                                        <thead>
-                                            <tr class="text-left text-gray-700">
-                                                <th class="px-4 py-2 text-sm">Datum</th>
-                                                <th class="px-4 py-2 text-sm">Startzeit</th>
-                                                <th class="px-4 py-2 text-sm">Endzeit</th>
-                                                <th class="px-4 py-2 text-sm">Status</th>
-                                                <th class="px-4 py-2 text-sm">Kommentar</th>
-                                                <th class="px-4 py-2 text-sm">Aktionen</th>
+                                <table class="w-full mt-2">
+                                    <thead>
+                                        <tr class="text-left text-gray-700">
+                                            <th class="px-4 py-2 text-sm">Datum</th>
+                                            <th class="px-4 py-2 text-sm">Startzeit</th>
+                                            <th class="px-4 py-2 text-sm">Endzeit</th>
+                                            <th class="px-4 py-2 text-sm">Status</th>
+                                            <th class="px-4 py-2 text-sm">Kommentar</th>
+                                            <th class="px-4 py-2 text-sm">Aktionen</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for worktime in employee_worktimes %}
+                                            <tr class="border-t border-gray-200">
+                                                <td class="px-4 py-2 text-sm">{{ worktime.date.strftime('%d.%m.%Y') }}</td>
+                                                <td class="px-4 py-2 text-sm">{{ worktime.start_time }}</td>
+                                                <td class="px-4 py-2 text-sm">{{ worktime.end_time }}</td>
+                                                <td class="px-4 py-2 text-sm">
+                                                    {% if worktime.status == 'Present' %}Anwesend{% endif %}
+                                                    {% if worktime.status == 'Absent' %}Abwesend{% endif %}
+                                                    {% if worktime.status == 'Holiday' %}Urlaub{% endif %}
+                                                    {% if worktime.status == 'Ill' %}Krank{% endif %}
+                                                </td>
+                                                <td class="px-4 py-2 text-sm">{{ worktime.comment }}</td>
+                                                <td class="px-4 py-2 text-sm">
+                                                    <a href="/edit_worktime/{{ worktime.id }}" class="bg-green-500 text-white py-1 px-2 rounded-lg mr-2 shadow-md w-full sm:w-auto hover:bg-green-600 transition duration-300 block text-center">Bearbeiten</a>
+                                                    <form action="/delete_worktime/{{ worktime.id }}" method="post" onsubmit="return confirm('Sind Sie sicher, dass Sie diese Arbeitszeit löschen möchten?');">
+                                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                                        <button type="submit" class="bg-red-500 text-white py-1 px-2 rounded-lg shadow-md w-full sm:w-auto hover:bg-red-600 transition duration-300 block text-center">Löschen</button>
+                                                    </form>
+                                                </td>
                                             </tr>
-                                        </thead>
-                                        <tbody>
-                                            {% for worktime in employee_worktimes %}
-                                                <tr class="border-t border-gray-200">
-                                                    <td class="px-4 py-2 text-sm">{{ worktime.date.strftime('%d.%m.%Y') }}</td>
-                                                    <td class="px-4 py-2 text-sm">{{ worktime.start_time }}</td>
-                                                    <td class="px-4 py-2 text-sm">{{ worktime.end_time }}</td>
-                                                    <td class="px-4 py-2 text-sm">
-                                                        {% if worktime.status == 'Present' %}Anwesend{% endif %}
-                                                        {% if worktime.status == 'Absent' %}Abwesend{% endif %}
-                                                        {% if worktime.status == 'Holiday' %}Urlaub{% endif %}
-                                                        {% if worktime.status == 'Ill' %}Krank{% endif %}
-                                                    </td>
-                                                    <td class="px-4 py-2 text-sm">{{ worktime.comment }}</td>
-                                                    <td class="px-4 py-2 text-sm">
-                                                        <a href="/edit_worktime/{{ worktime.id }}" class="bg-green-500 text-white py-1 px-2 rounded-lg mr-2 shadow-md w-full sm:w-auto hover:bg-green-600 transition duration-300 block text-center">Bearbeiten</a>
-                                                        <form action="/delete_worktime/{{ worktime.id }}" method="post" onsubmit="return confirm('Sind Sie sicher, dass Sie diese Arbeitszeit löschen möchten?');">
-                                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                                            <button type="submit" class="bg-red-500 text-white py-1 px-2 rounded-lg shadow-md w-full sm:w-auto hover:bg-red-600 transition duration-300 block text-center">Löschen</button>
-                                                        </form>
-                                                    </td>
-                                                </tr>
-                                            {% endfor %}
-                                        </tbody>
-                                    </table>
-                                </div>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
                             </div>
                         {% endif %}
                     {% endfor %}
@@ -71,7 +69,7 @@
     </section>
 
     <!-- Logout Button -->
-    <a href="/logout" class="bg-red-500 text-white py-3 px-6 rounded-lg shadow-md w-full sm:w-auto hover:bg-red-600 transition duration-300 block text-center mt-4">Abmelden</a>
+    <a href="/logout" class="bg-red-500 text-white py-2 px-4 rounded-lg shadow-md w-full sm:w-auto hover:bg-red-600 transition duration-300 block text-center mt-4">Abmelden</a>
 
     <!-- JavaScript to toggle work times visibility -->
     <script>
